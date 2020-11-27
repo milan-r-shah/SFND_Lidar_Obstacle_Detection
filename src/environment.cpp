@@ -7,6 +7,7 @@
 #include "sensors/lidar.h"
 // using templates for processPointClouds so also include .cpp to help linker
 #include "processPointClouds.cpp"
+#include <pcl/visualization/cloud_viewer.h>
 
 std::vector<Car> initHighway(bool renderScene, pcl::visualization::PCLVisualizer::Ptr& viewer) {
     Car egoCar(Vect3(0, 0, 0), Vect3(4, 2, 2), Color(0, 1, 0), "egoCar");
@@ -41,6 +42,9 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr& viewer) {
     std::vector<Car> cars = initHighway(renderScene, viewer);
 
     // TODO:: Create lidar sensor
+    Lidar* lidar = new Lidar(cars, 0.0);
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud = lidar->scan();
+    renderRays(viewer, lidar->position, cloud);
 
     // TODO:: Create point processor
 }
