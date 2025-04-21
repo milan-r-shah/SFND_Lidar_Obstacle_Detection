@@ -1,0 +1,16 @@
+---
+Language: Cpp
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+PointerAlignment: Left
+BreakBeforeBraces: Attach
+ColumnLimit: 0
+
+AllowShortFunctionsOnASingleLine: None
+FixNamespaceComments: true
+SortIncludes: false
+...
