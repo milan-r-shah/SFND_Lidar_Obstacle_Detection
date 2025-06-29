@@ -55,6 +55,9 @@ pcl::visualization::PCLVisualizer::Ptr initScene() {
 }
 
 std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int maxIterations, float distanceTol) {
+    // Time segmantation process
+    auto start_time = std::chrono::steady_clock::now();
+
     std::unordered_set<int> inliersResult;
     srand(time(NULL));
 
@@ -69,46 +72,98 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
 
     // Return indicies of inliers from fitted line with most inliers
 
-    // v1.0
-    int num_points = cloud->points.size();
+    // // v1.0
+    // int num_points = cloud->points.size();
 
-    for (int i = 0; i < maxIterations; i++) {
-        int idx1 = rand() % num_points;
-        int idx2 = rand() % num_points;
-        while (idx2 == idx1) {
-            idx2 = rand() % num_points;
+    // for (int i = 0; i < maxIterations; i++) {
+    //     int idx1 = rand() % num_points;
+    //     int idx2 = rand() % num_points;
+    //     while (idx2 == idx1) {
+    //         idx2 = rand() % num_points;
+    //     }
+
+    //     pcl::PointXYZ point1 = cloud->points[idx1];
+    //     pcl::PointXYZ point2 = cloud->points[idx2];
+
+    //     // Calculate the coefficients of the line (A, B, C) in the form Ax + By + C = 0
+    //     float A = point1.y - point2.y;
+    //     float B = point2.x - point1.x;
+    //     float C = point1.x * point2.y - point2.x * point1.y;
+
+    //     std::unordered_set<int> curr_inliers;
+
+    //     for (int j = 0; j < num_points; j++) {
+    //         if (j == idx1 || j == idx2) {
+    //             continue; // Skip the points used to fit the line
+    //         }
+
+    //         pcl::PointXYZ curr_points = cloud->points[j];
+
+    //         // Calculate the distance from the point to the line
+    //         float distance = fabs(A * curr_points.x + B * curr_points.y + C) / std::sqrt(A * A + B * B);
+
+    //         if (distance <= distanceTol) {
+    //             curr_inliers.insert(j);  // If the distance is within the tolerance, add to inliers
+    //         }
+    //     }
+
+    //     // If the current set of inliers is larger than the previous best, update the result
+    //     if (curr_inliers.size() > inliersResult.size()) {
+    //         inliersResult = curr_inliers;
+    //     }
+    // }
+
+    // // v2.0
+    while (maxIterations--) {
+        std::unordered_set<int> inliers_idx;
+
+        // Randomly pick two points
+        while (inliers_idx.size() < 2) {
+            inliers_idx.insert(rand() % cloud->points.size());
         }
 
-        pcl::PointXYZ point1 = cloud->points[idx1];
-        pcl::PointXYZ point2 = cloud->points[idx2];
+        float x1, y1, x2, y2;
+
+        auto itr = inliers_idx.begin();
+        x1 = cloud->points[*itr].x;
+        y1 = cloud->points[*itr].y;
+        itr++;
+        x2 = cloud->points[*itr].x;
+        y2 = cloud->points[*itr].y;
 
         // Calculate the coefficients of the line (A, B, C) in the form Ax + By + C = 0
-        float A = point1.y - point2.y;
-        float B = point2.x - point1.x;
-        float C = point1.x * point2.y - point2.x * point1.y;
+        float a = y1 - y2;
+        float b = x2 - x1;
+        float c = x1 * y2 - x2 * y1;
 
-        std::unordered_set<int> curr_inliers;
-
-        for (int j = 0; j < num_points; j++) {
-            if (j == idx1 || j == idx2) {
-                continue; // Skip the points used to fit the line
+        for (int index = 0; index < cloud->points.size(); index++) {
+            // Skip the points that are already inliers. This is to avoid checking the same points again
+            // This is not strictly necessary, but it can improve performance
+            // since we don't need to check the points that are already inliers
+            if (inliers_idx.count(index)) {
+                continue;
             }
 
-            pcl::PointXYZ curr_points = cloud->points[j];
+            pcl::PointXYZ curr_point = cloud->points[index];
+            float x3 = curr_point.x;
+            float y3 = curr_point.y;
 
             // Calculate the distance from the point to the line
-            float distance = fabs(A * curr_points.x + B * curr_points.y + C) / std::sqrt(A * A + B * B);
+            float d = fabs(a * x3 + b * y3 + c) / sqrt(a * a + b * b);
 
-            if (distance <= distanceTol) {
-                curr_inliers.insert(j);  // If the distance is within the tolerance, add to inliers
+            if (d <= distanceTol) {
+                inliers_idx.insert(index);
             }
         }
 
-        // If the current set of inliers is larger than the previous best, update the result
-        if (curr_inliers.size() > inliersResult.size()) {
-            inliersResult = curr_inliers;
+        if (inliers_idx.size() > inliersResult.size()) {
+            inliersResult = inliers_idx;  // Update the result if the current set of inliers is larger
         }
     }
+
+    auto end_time     = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "RANSAC took " << elapsed_time.count() << " milliseconds." << std::endl;
 
     return inliersResult;
 }
