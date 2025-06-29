@@ -3,9 +3,11 @@ Language: Cpp
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
+SpacesBeforeTrailingComments: 2
 
 AlignConsecutiveAssignments: true
 AlignConsecutiveDeclarations: true
+AlignTrailingComments: false
 PointerAlignment: Left
 BreakBeforeBraces: Attach
 ColumnLimit: 0
