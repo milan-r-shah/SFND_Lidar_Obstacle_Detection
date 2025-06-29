@@ -50,9 +50,27 @@ void simpleHighway(pcl::visualization::PCLVisualizer::Ptr& viewer) {
     // TODO:: Create point processor
     ProcessPointClouds<pcl::PointXYZ> point_processor;  // on stack
     // ProcessPointClouds<pcl::PointXYZ>* point_processor = new ProcessPointClouds<pcl::PointXYZ>();  // on heap
+
+    //
+    // Segment the point cloud into obstacles and plane
+    //
     std::pair<pcl::PointCloud<pcl::PointXYZ>::Ptr, pcl::PointCloud<pcl::PointXYZ>::Ptr> segment_cloud = point_processor.SegmentPlane(lidar_pt_cloud, 100, 0.2);
-    renderPointCloud(viewer, segment_cloud.first, "obstacle_cloud", Color(1, 0, 0));  // red
-    renderPointCloud(viewer, segment_cloud.second, "plane_cloud", Color(0, 1, 0));  // green
+    // renderPointCloud(viewer, segment_cloud.first, "obstacle_cloud", Color(1, 0, 0));  // red
+    // renderPointCloud(viewer, segment_cloud.second, "plane_cloud", Color(0, 1, 0));  // green
+
+    //
+    // Cluster the obstacles
+    //
+    std::vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cloud_clusters = point_processor.Clustering(segment_cloud.first, 1.0, 3, 30);
+    int                                              cluster_id     = 0;
+    std::vector<Color>                               colors         = {Color(1, 0, 0), Color(0, 1, 0), Color(0, 0, 1)};
+
+    for (pcl::PointCloud<pcl::PointXYZ>::Ptr cluster : cloud_clusters) {
+        std::cout << "cluster size ";
+        point_processor.numPoints(cluster);
+        renderPointCloud(viewer, cluster, "obstacle_cloud" + std::to_string(cluster_id), colors[cluster_id % colors.size()]);
+        cluster_id++;
+    }
 }
 
 // setAngle: SWITCH CAMERA ANGLE {XY, TopDown, Side, FPS}
