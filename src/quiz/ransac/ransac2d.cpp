@@ -210,6 +210,14 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
         normal_vector.y = v1.z * v2.x - v1.x * v2.z;
         normal_vector.z = v1.x * v2.y - v1.y * v2.x;
 
+        // Check for collinear points, which results in a zero-length normal vector.
+        // This would lead to division by zero later.
+        float mag = sqrt(normal_vector.x * normal_vector.x + normal_vector.y * normal_vector.y + normal_vector.z * normal_vector.z);
+        if (mag < 1e-6) {
+            // Points are collinear, this is a degenerate plane. Skip this iteration.
+            continue;
+        }
+
         float A, B, C, D;
         A = normal_vector.x;
         B = normal_vector.y;
@@ -231,7 +239,8 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
             float z4 = curr_point.z;
 
             // Calculate the distance from the point to the plane
-            float d = fabs(A * x4 + B * y4 + C * z4 + D) / sqrt(A * A + B * B + C * C);
+            // float d = fabs(A * x4 + B * y4 + C * z4 + D) / sqrt(A * A + B * B + C * C);
+            float d = fabs(A * x4 + B * y4 + C * z4 + D) / mag;
 
             if (d <= distanceTol) {
                 inliers_idx.insert(index);
