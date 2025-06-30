@@ -87,16 +87,18 @@ int main() {
 
     KdTree* tree = new KdTree;
 
-    for (int i = 0; i < points.size(); i++)
+    for (int i = 0; i < points.size(); i++) {
         tree->insert(points[i], i);
+    }
 
     int it = 0;
     render2DTree(tree->root, viewer, window, it);
 
     std::cout << "Test Search" << std::endl;
     std::vector<int> nearby = tree->search({-6, 7}, 3.0);
-    for (int index : nearby)
+    for (int index : nearby) {
         std::cout << index << ",";
+    }
     std::cout << std::endl;
 
     // Time segmentation process
@@ -113,13 +115,16 @@ int main() {
     std::vector<Color> colors    = {Color(1, 0, 0), Color(0, 1, 0), Color(0, 0, 1)};
     for (std::vector<int> cluster : clusters) {
         pcl::PointCloud<pcl::PointXYZ>::Ptr clusterCloud(new pcl::PointCloud<pcl::PointXYZ>());
-        for (int indice : cluster)
+        for (int indice : cluster) {
             clusterCloud->points.push_back(pcl::PointXYZ(points[indice][0], points[indice][1], 0));
+        }
         renderPointCloud(viewer, clusterCloud, "cluster" + std::to_string(clusterId), colors[clusterId % 3]);
         ++clusterId;
     }
-    if (clusters.size() == 0)
+
+    if (clusters.size() == 0) {
         renderPointCloud(viewer, cloud, "data");
+    }
 
     while (!viewer->wasStopped()) {
         viewer->spinOnce();
