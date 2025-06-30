@@ -91,8 +91,8 @@ int main() {
         tree->insert(points[i], i);
     }
 
-    int it = 0;
-    render2DTree(tree->root, viewer, window, it);
+    int iteration = 0;
+    render2DTree(tree->root, viewer, window, iteration);
 
     std::cout << "Test Search" << std::endl;
     std::vector<int> nearby = tree->search({-6, 7}, 3.0);
