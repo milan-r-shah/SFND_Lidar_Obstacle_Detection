@@ -93,3 +93,19 @@ void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, BoxQ box, int id,
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, color.r, color.g, color.b, cubeFill);
     viewer->setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, opacity * 0.3, cubeFill);
 }
+
+void renderCar(pcl::visualization::PCLVisualizer::Ptr& viewer, float car_x_min, float car_y_min, float car_z_min, float car_x_max, float car_y_max, float car_z_max, int id, Color color, float opacity) {
+    // Ensure the opacity is within the range [0.0, 1.0]
+    opacity = opacity > 1.0 ? 1.0 : opacity;
+    opacity = opacity < 0.0 ? 0.0 : opacity;
+
+    Box car_box;
+    car_box.x_min = -1.5;
+    car_box.y_min = -1.7;
+    car_box.z_min = -1;
+    car_box.x_max = 2.6;
+    car_box.y_max = 1.7;
+    car_box.z_max = -0.4;
+
+    renderBox(viewer, car_box, id, color, opacity);
+}

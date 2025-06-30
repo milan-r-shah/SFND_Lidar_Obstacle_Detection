@@ -89,4 +89,5 @@ void renderPointCloud(pcl::visualization::PCLVisualizer::Ptr& viewer, const pcl:
 void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, Box box, int id, Color color = Color(1, 0, 0), float opacity = 1);
 void renderBox(pcl::visualization::PCLVisualizer::Ptr& viewer, BoxQ box, int id, Color color = Color(1, 0, 0), float opacity = 1);
 
+void renderCar(pcl::visualization::PCLVisualizer::Ptr& viewer, float car_x_min, float car_y_min, float car_z_min, float car_x_max, float car_y_max, float car_z_max, int id, Color color, float opacity = 1);
 #endif
