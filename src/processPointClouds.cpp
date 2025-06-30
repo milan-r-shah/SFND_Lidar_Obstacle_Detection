@@ -120,6 +120,112 @@ std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT
 }
 
 template <typename PointT>
+std::unordered_set<int> ProcessPointClouds<PointT>::RansacPlane(typename pcl::PointCloud<PointT>::Ptr cloud, int max_iterations, float distance_tol) {
+    std::unordered_set<int> inliers_result;
+    srand(time(NULL));
+
+    while (max_iterations--) {
+        std::unordered_set<int> inliers_idx;
+
+        // Randomly pick three points
+        while (inliers_idx.size() < 3) {
+            inliers_idx.insert(rand() % cloud->points.size());
+        }
+
+        float x1, y1, z1, x2, y2, z2, x3, y3, z3;
+
+        auto itr = inliers_idx.begin();
+        x1 = cloud->points[*itr].x;
+        y1 = cloud->points[*itr].y;
+        z1 = cloud->points[*itr].z;
+        itr++;
+        x2 = cloud->points[*itr].x;
+        y2 = cloud->points[*itr].y;
+        z2 = cloud->points[*itr].z;
+        itr++;
+        x3 = cloud->points[*itr].x;
+        y3 = cloud->points[*itr].y;
+        z3 = cloud->points[*itr].z;
+
+        // Use point1 as a reference and define two vectors on the plane v1 and v2
+        // Vector v1 travels from point1 to point2
+        // Vector v2 travels from point1 to point3
+        pcl::PointXYZ v1 = pcl::PointXYZ(x2 - x1, y2 - y1, z2 - z1);
+        pcl::PointXYZ v2 = pcl::PointXYZ(x3 - x1, y3 - y1, z3 - z1);
+
+        // Calculate the normal vector of the plane using the cross product of v1 and v2
+        pcl::PointXYZ normal_vector;
+        normal_vector.x = v1.y * v2.z - v1.z * v2.y;
+        normal_vector.y = v1.z * v2.x - v1.x * v2.z;
+        normal_vector.z = v1.x * v2.y - v1.y * v2.x;
+
+        // Check for collinear points, which results in a zero-length normal vector.
+        // This would lead to division by zero later.
+        float mag = sqrt(normal_vector.x * normal_vector.x + normal_vector.y * normal_vector.y + normal_vector.z * normal_vector.z);
+        if (mag < 1e-6) {
+            // Points are collinear, this is a degenerate plane. Skip this iteration.
+            continue;
+        }
+
+        float A, B, C, D;
+        A = normal_vector.x;
+        B = normal_vector.y;
+        C = normal_vector.z;
+
+        D = -(A * x1 + B * y1 + C * z1);
+
+        for (int index = 0; index < cloud->points.size(); index++) {
+            // Skip the points that are already inliers. This is to avoid checking the same points again
+            // This is not strictly necessary, but it can improve performance
+            // since we don't need to check the points that are already inliers
+            if (inliers_idx.count(index)) {
+                continue;
+            }
+
+            PointT curr_point = cloud->points[index];
+            float  x4         = curr_point.x;
+            float  y4         = curr_point.y;
+            float  z4         = curr_point.z;
+
+            // Calculate the distance from the point to the plane
+            // float d = fabs(A * x4 + B * y4 + C * z4 + D) / sqrt(A * A + B * B + C * C);
+            float d = fabs(A * x4 + B * y4 + C * z4 + D) / mag;
+
+            if (d <= distance_tol) {
+                inliers_idx.insert(index);
+            }
+        }
+
+        if (inliers_idx.size() > inliers_result.size()) {
+            inliers_result = inliers_idx;  // Update the result if the current set of inliers is larger
+        }
+    }
+
+    return inliers_result;
+}
+
+template <typename PointT>
+std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::SegmentPlaneAlgoFromScratch(typename pcl::PointCloud<PointT>::Ptr cloud, int max_iterations, float distance_threshold) {
+    // Time segmentation process
+    auto start_time = std::chrono::steady_clock::now();
+
+    std::unordered_set<int> inliers_unord_set = RansacPlane(cloud, max_iterations, distance_threshold);
+
+    pcl::PointIndices::Ptr inliers{new pcl::PointIndices};
+
+    for (int index : inliers_unord_set) {
+        inliers->indices.push_back(index);
+    }
+
+    auto end_time     = std::chrono::steady_clock::now();
+    auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+    std::cout << "RANSAC took " << elapsed_time.count() << " milliseconds." << std::endl;
+
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> segResult = SeparateClouds(inliers, cloud);
+    return segResult;
+}
+
+template <typename PointT>
 std::vector<typename pcl::PointCloud<PointT>::Ptr> ProcessPointClouds<PointT>::Clustering(typename pcl::PointCloud<PointT>::Ptr cloud, float clusterTolerance, int minSize, int maxSize) {
     // Time clustering process
     auto startTime = std::chrono::steady_clock::now();

@@ -17,6 +17,7 @@
 #include <vector>
 #include <ctime>
 #include <chrono>
+#include <unordered_set>
 #include "render/box.h"
 
 template <typename PointT>
@@ -36,6 +37,8 @@ class ProcessPointClouds {
 
     std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> SegmentPlane(typename pcl::PointCloud<PointT>::Ptr cloud, int maxIterations, float distanceThreshold);
 
+    std::pair<typename pcl::PointCloud<PointT>::Ptr, typename pcl::PointCloud<PointT>::Ptr> SegmentPlaneAlgoFromScratch(typename pcl::PointCloud<PointT>::Ptr cloud, int max_iterations, float distance_threshold);
+
     std::vector<typename pcl::PointCloud<PointT>::Ptr> Clustering(typename pcl::PointCloud<PointT>::Ptr cloud, float clusterTolerance, int minSize, int maxSize);
 
     Box BoundingBox(typename pcl::PointCloud<PointT>::Ptr cluster);
@@ -45,5 +48,9 @@ class ProcessPointClouds {
     typename pcl::PointCloud<PointT>::Ptr loadPcd(std::string file);
 
     std::vector<boost::filesystem::path> streamPcd(std::string dataPath);
+
+  private:
+    std::unordered_set<int> RansacPlane(typename pcl::PointCloud<PointT>::Ptr cloud, int max_iterations, float distance_tol);
+
 };
 #endif /* PROCESSPOINTCLOUDS_H_ */
