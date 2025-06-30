@@ -125,8 +125,8 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
         float x1, y1, x2, y2;
 
         auto itr = inliers_idx.begin();
-        x1 = cloud->points[*itr].x;
-        y1 = cloud->points[*itr].y;
+        x1       = cloud->points[*itr].x;
+        y1       = cloud->points[*itr].y;
         itr++;
         x2 = cloud->points[*itr].x;
         y2 = cloud->points[*itr].y;
@@ -145,8 +145,8 @@ std::unordered_set<int> Ransac(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, int ma
             }
 
             pcl::PointXYZ curr_point = cloud->points[index];
-            float x3 = curr_point.x;
-            float y3 = curr_point.y;
+            float         x3         = curr_point.x;
+            float         y3         = curr_point.y;
 
             // Calculate the distance from the point to the line
             float d = fabs(a * x3 + b * y3 + c) / sqrt(a * a + b * b);
@@ -186,9 +186,9 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
         float x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
         auto itr = inliers_idx.begin();
-        x1 = cloud->points[*itr].x;
-        y1 = cloud->points[*itr].y;
-        z1 = cloud->points[*itr].z;
+        x1       = cloud->points[*itr].x;
+        y1       = cloud->points[*itr].y;
+        z1       = cloud->points[*itr].z;
         itr++;
         x2 = cloud->points[*itr].x;
         y2 = cloud->points[*itr].y;
@@ -234,9 +234,9 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
             }
 
             pcl::PointXYZ curr_point = cloud->points[index];
-            float x4 = curr_point.x;
-            float y4 = curr_point.y;
-            float z4 = curr_point.z;
+            float         x4         = curr_point.x;
+            float         y4         = curr_point.y;
+            float         z4         = curr_point.z;
 
             // Calculate the distance from the point to the plane
             // float d = fabs(A * x4 + B * y4 + C * z4 + D) / sqrt(A * A + B * B + C * C);
@@ -258,7 +258,6 @@ std::unordered_set<int> RansacPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, i
 
     return inliers_result;
 }
-
 
 int main() {
     // Create viewer
