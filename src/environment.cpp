@@ -114,10 +114,37 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer) {
     pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud       = point_processor_i->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
     // renderPointCloud(viewer, input_cloud, "input_cloud");
 
+    //
     // downsample and filter the point cloud using voxel grid and cropbox
+    //
     pcl::PointCloud<pcl::PointXYZI>::Ptr filtered_cloud = point_processor_i->FilterCloud(input_cloud, 0.2, Eigen::Vector4f(-10, -5, -2, 1), Eigen::Vector4f(30, 7, 1, 1));
-    renderPointCloud(viewer, filtered_cloud, "filtered_cloud");
-    renderCar(viewer, -1.5, -1.7, -1, 2.6, 1.7, -0.4, 0, Color(1, 0, 1), 0.5);  // magenta box with opacity 0.5    
+    // renderPointCloud(viewer, filtered_cloud, "filtered_cloud");
+    // renderCar(viewer, -1.5, -1.7, -1, 2.6, 1.7, -0.4, -1, Color(1, 0, 1), 0.5);  // magenta box with opacity 0.5    
+
+    //
+    // Segment the point cloud into obstacles (other vehicles, etc) and plane (road)
+    //
+    std::pair<pcl::PointCloud<pcl::PointXYZI>::Ptr, pcl::PointCloud<pcl::PointXYZI>::Ptr> segment_cloud = point_processor_i->SegmentPlane(filtered_cloud, 100, 0.2);
+    // renderPointCloud(viewer, segment_cloud.first, "obstacle_cloud", Color(1, 0, 0));  // red
+    renderPointCloud(viewer, segment_cloud.second, "plane_cloud", Color(0, 1, 0));  // green
+
+    //
+    // Cluster the obstacles
+    //
+    std::vector<pcl::PointCloud<pcl::PointXYZI>::Ptr> cloud_clusters = point_processor_i->Clustering(segment_cloud.first, 0.25, 10, 1000);
+    int                                               cluster_id     = 0;
+    std::vector<Color>                                colors         = {Color(1, 0, 0), Color(1, 1, 0), Color(0, 0, 1)};  // red, yellow, blue
+
+    for (pcl::PointCloud<pcl::PointXYZI>::Ptr cluster : cloud_clusters) {
+        std::cout << "cluster size ";
+        point_processor_i->numPoints(cluster);
+        renderPointCloud(viewer, cluster, "obstacle_cloud" + std::to_string(cluster_id), colors[cluster_id % colors.size()]);
+
+        Box box = point_processor_i->BoundingBox(cluster);
+        renderBox(viewer, box, cluster_id);
+
+        cluster_id++;
+    }
 }   
 
 int main(int argc, char** argv) {
