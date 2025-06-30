@@ -113,8 +113,11 @@ void cityBlock(pcl::visualization::PCLVisualizer::Ptr& viewer) {
     ProcessPointClouds<pcl::PointXYZI>*  point_processor_i = new ProcessPointClouds<pcl::PointXYZI>();
     pcl::PointCloud<pcl::PointXYZI>::Ptr input_cloud       = point_processor_i->loadPcd("../src/sensors/data/pcd/data_1/0000000000.pcd");
     // renderPointCloud(viewer, input_cloud, "input_cloud");
+
+    // downsample and filter the point cloud using voxel grid and cropbox
     pcl::PointCloud<pcl::PointXYZI>::Ptr filtered_cloud = point_processor_i->FilterCloud(input_cloud, 0.2, Eigen::Vector4f(-10, -5, -2, 1), Eigen::Vector4f(30, 7, 1, 1));
     renderPointCloud(viewer, filtered_cloud, "filtered_cloud");
+    renderCar(viewer, -1.5, -1.7, -1, 2.6, 1.7, -0.4, 0, Color(1, 0, 1), 0.5);  // magenta box with opacity 0.5    
 }   
 
 int main(int argc, char** argv) {
