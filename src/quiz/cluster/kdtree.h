@@ -71,6 +71,7 @@ struct KdTree {
 
                 if (distance <= distanceTol) {
                     ids.push_back(node->id);
+                    // std::cout << "id=" << node-> id << " point=(" << node->point[0] << ", " << node->point[1] << "), depth=" << depth << " i.e. dimension=" << (depth % 2 ? "y" : "x") << std::endl;
                 }
             }
 
@@ -89,6 +90,7 @@ struct KdTree {
     std::vector<int> search(std::vector<float> target, float distanceTol) {
         std::vector<int> ids;
 
+        // std::cout << "taget=(" << target[0] << ", " << target[1] << "), distaceTol=" << distanceTol << std::endl;
         searchHelper(target, root, 0, distanceTol, ids);
 
         return ids;
